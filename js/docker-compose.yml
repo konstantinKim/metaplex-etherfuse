@@ -1,0 +1,38 @@
+version: "3.7"
+services:
+  frontend:
+    image: node:14
+    command: npm run start
+    volumes:
+      - .:/js
+    working_dir: /js
+    ports:
+      - 3000:3000
+
+  install:
+    image: node:14
+    command: npm install
+    volumes:
+      - .:/js
+    working_dir: /js
+
+  bootstrap:
+    image: node:14
+    command: npm run bootstrap
+    volumes:
+      - .:/js
+    working_dir: /js   
+  
+  build:
+    image: node:14
+    command: npm run build    
+    volumes:
+      - .:/js
+    working_dir: /js
+  
+  version:
+    image: node:14
+    command: npm --version    
+    volumes:
+      - .:/js
+    working_dir: /js  
