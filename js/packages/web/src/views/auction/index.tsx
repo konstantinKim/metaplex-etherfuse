@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Button, Card, Carousel, Col, List, Row, Skeleton } from 'antd';
 import { AuctionCard } from '../../components/AuctionCard';
-import { Connection, ParsedAccountData, PublicKey, ValidatorInfo } from '@solana/web3.js';
+import { Connection } from '@solana/web3.js';
 import { AuctionViewItem } from '@oyster/common/dist/lib/models/metaplex/index';
 import {
   AuctionView as Auction,
@@ -11,7 +11,7 @@ import {
   useBidsForAuction,
   useCreators,
   useExtendedArt,
-  useUserBalance
+  useUserBalance,
 } from '../../hooks';
 import { ArtContent } from '../../components/ArtContent';
 
@@ -41,7 +41,6 @@ import { MetaAvatar, MetaAvatarDetailed } from '../../components/MetaAvatar';
 import { AmountLabel } from '../../components/AmountLabel';
 import { ClickToCopy } from '../../components/ClickToCopy';
 import { useTokenList } from '../../contexts/tokenList';
-import { getTokenAmount } from '../../../../token-entangler/src/utils/accounts';
 
 export const AuctionItem = ({
   item,
@@ -85,38 +84,35 @@ export const AuctionItem = ({
 export const AuctionView = () => {
   const { width } = useWindowDimensions();
   const { id } = useParams<{ id: string }>();
-  const { endpoint } = useConnectionConfig();  
-  const connection = useConnection();
+  const { endpoint } = useConnectionConfig();
   const auction = useAuction(id);
   const [currentIndex, setCurrentIndex] = useState(0);
   const art = useArt(auction?.thumbnail.metadata.pubkey);
   const { ref, data } = useExtendedArt(auction?.thumbnail.metadata.pubkey);
   const creators = useCreators(auction);
   const { pullAuctionPage } = useMeta();
-  const balance = useUserBalance(auction?.auction.info?.tokenMint);        
-  const [currentYield, setCurrentYield] = useState(0);    
-  
+  const balance = useUserBalance(auction?.auction.info?.tokenMint);
+  const [currentYield, setCurrentYield] = useState(0);
+
   useEffect(() => {
     const loadStores = async () => {
-      try {      
-        // TODO:                  
+      try {
+        // TODO:
 
-        //let r1 = await connection.getBalance(new PublicKey('9QU2QSxhb24FUX3Tu2FpczXjpK3VYrvRudywSZaM29mF'));                 
+        //let r1 = await connection.getBalance(new PublicKey('9QU2QSxhb24FUX3Tu2FpczXjpK3VYrvRudywSZaM29mF'));
         //r1 ? setCurrentYield(r1 / 10000) : false;
 
-        if(balance.hasBalance){
+        if (balance.hasBalance) {
           setCurrentYield(balance.balance / 10000);
         }
-        
-                
-      } catch (error) {}
+      } catch (error) {
+        console.log('error');
+      }
     };
     loadStores();
     pullAuctionPage(id);
-    
   }, []);
 
-  
   let edition = '';
   if (art.type === ArtType.NFT) {
     edition = 'Unique';
@@ -348,12 +344,17 @@ export const AuctionView = () => {
               <div className={'info-container'}>
                 <div className={'info-component'}>
                   <h6 className={'info-title'}>ARTIST</h6>
-                  <span>{<MetaAvatar creators={creators} />} {creators[0]?.name}</span>
+                  <span>
+                    {<MetaAvatar creators={creators} />} {creators[0]?.name}
+                  </span>
                 </div>
                 <div className={'info-component'}>
                   <h6 className={'info-title'}>VALIDATOR</h6>
-                  <span>TODO: <span style={{"color": "red"}}>need clarification!</span></span>
-                </div>                
+                  <span>
+                    TODO:{' '}
+                    <span style={{ color: 'red' }}>need clarification!</span>
+                  </span>
+                </div>
                 <div className={'info-component'}>
                   <h6 className={'info-title'}>Winners</h6>
                   <span>

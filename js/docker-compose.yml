@@ -35,4 +35,11 @@ services:
     command: npm --version    
     volumes:
       - .:/js
-    working_dir: /js  
+    working_dir: /js
+
+  lint:
+    image: node:14
+    command: npm run lint
+    volumes:
+      - .:/js
+    working_dir: /js
