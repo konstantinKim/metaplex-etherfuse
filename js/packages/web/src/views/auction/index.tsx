@@ -11,7 +11,7 @@ import {
   useBidsForAuction,
   useCreators,
   useExtendedArt,
-  useUserBalance,
+  //useUserBalance,
 } from '../../hooks';
 import { ArtContent } from '../../components/ArtContent';
 
@@ -85,31 +85,34 @@ export const AuctionView = () => {
   const { width } = useWindowDimensions();
   const { id } = useParams<{ id: string }>();
   const { endpoint } = useConnectionConfig();
+  const connection = useConnection();
   const auction = useAuction(id);
   const [currentIndex, setCurrentIndex] = useState(0);
   const art = useArt(auction?.thumbnail.metadata.pubkey);
   const { ref, data } = useExtendedArt(auction?.thumbnail.metadata.pubkey);
   const creators = useCreators(auction);
   const { pullAuctionPage } = useMeta();
-  const balance = useUserBalance(auction?.auction.info?.tokenMint);
   const [currentYield, setCurrentYield] = useState(0);
 
   useEffect(() => {
-    const loadStores = async () => {
+    const loadStores = async (connection: Connection) => {
       try {
-        // TODO:
-
-        //let r1 = await connection.getBalance(new PublicKey('9QU2QSxhb24FUX3Tu2FpczXjpK3VYrvRudywSZaM29mF'));
-        //r1 ? setCurrentYield(r1 / 10000) : false;
-
-        if (balance.hasBalance) {
-          setCurrentYield(balance.balance / 10000);
+        // TODO: clarify
+        const voteAccounts = await connection.getVoteAccounts();
+        console.log(voteAccounts);
+        const voteAccount = voteAccounts.current.find(
+          o => o.votePubkey === '9QU2QSxhb24FUX3Tu2FpczXjpK3VYrvRudywSZaM29mF',
+        );
+        if (voteAccount) {
+          setCurrentYield(voteAccount.activatedStake / 10000);
+        } else {
+          setCurrentYield(0);
         }
       } catch (error) {
-        console.log('error');
+        console.log('error ' + error);
       }
     };
-    loadStores();
+    loadStores(connection);
     pullAuctionPage(id);
   }, []);
 
@@ -401,7 +404,7 @@ export const AuctionView = () => {
                 </div>
                 <div className={'info-component'}>
                   <h6 className={'info-title'}>Current Yield</h6>
-                  <span>{currentYield}</span>
+                  <span>{currentYield} Sol P/E</span>
                 </div>
               </div>
             </Col>
