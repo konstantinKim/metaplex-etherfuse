@@ -17,6 +17,8 @@ Go to `cd metaplex-etherfuse/js`
 Run `docker-compose run install` to install Node packages.  You may also need to run this again in the future
 after pulling down changes from GitHub if the packages have changed
 
+Run `docker-compose run bootstrap`
+
 Run `docker-compose run build`
 
 ### Run frontend connected
