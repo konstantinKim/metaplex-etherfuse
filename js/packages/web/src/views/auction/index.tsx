@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Button, Card, Carousel, Col, List, Row, Skeleton } from 'antd';
 import { AuctionCard } from '../../components/AuctionCard';
-import { Connection } from '@solana/web3.js';
+import { Connection, ParsedAccountData, PublicKey } from '@solana/web3.js';
 import { AuctionViewItem } from '@oyster/common/dist/lib/models/metaplex/index';
 import {
   AuctionView as Auction,
@@ -93,13 +93,22 @@ export const AuctionView = () => {
   const creators = useCreators(auction);
   const { pullAuctionPage } = useMeta();
   const [currentYield, setCurrentYield] = useState(0);
+  const [vaildatorInfo, setVaildatorInfo] = useState<ParsedAccountData | null>(
+    null,
+  );
 
   useEffect(() => {
     const loadStores = async (connection: Connection) => {
       try {
-        // TODO: clarify
-        const voteAccounts = await connection.getVoteAccounts();
-        console.log(voteAccounts);
+        const r1 = connection.getVoteAccounts();
+        const r2 = connection.getParsedProgramAccounts(
+          new PublicKey('Config1111111111111111111111111111111111111'),
+        );
+        const voteAccounts = await r1;
+        const allValidators = await r2;
+        console.log('All Vote Accounts: ', voteAccounts);
+        console.log('All Validators:', allValidators);
+
         const voteAccount = voteAccounts.current.find(
           o => o.votePubkey === '9QU2QSxhb24FUX3Tu2FpczXjpK3VYrvRudywSZaM29mF',
         );
@@ -107,6 +116,25 @@ export const AuctionView = () => {
           setCurrentYield(voteAccount.activatedStake / 10000);
         } else {
           setCurrentYield(0);
+        }
+
+        const findValidatorInfo = allValidators.find(o => {
+          const data = o.account.data as ParsedAccountData;
+          if (data?.parsed?.type === 'validatorInfo') {
+            const myValidatorInfo: ParsedAccountData =
+              data.parsed.info.keys.find(
+                k =>
+                  k.pubkey === 'EvnRmnMrd69kFdbLMxWkTn1icZ7DCceRhvmb2SJXqDo4',
+              );
+            if (myValidatorInfo) {
+              return true;
+            }
+          }
+        });
+        if (findValidatorInfo) {
+          setVaildatorInfo(findValidatorInfo.account.data as ParsedAccountData);
+        } else {
+          setVaildatorInfo(null);
         }
       } catch (error) {
         console.log('error ' + error);
@@ -354,8 +382,7 @@ export const AuctionView = () => {
                 <div className={'info-component'}>
                   <h6 className={'info-title'}>VALIDATOR</h6>
                   <span>
-                    TODO:{' '}
-                    <span style={{ color: 'red' }}>need clarification!</span>
+                    <span>{vaildatorInfo?.parsed.info.configData.name}</span>
                   </span>
                 </div>
                 <div className={'info-component'}>
